@@ -1,0 +1,53 @@
+
+
+
+# Question 2.2
+
+# Problem 1
+###################################################################################
+install.packages("kernlab")
+library(kernlab)
+library(ggplot2)
+
+data <- read.table("credit_card_data.txt")
+
+x<- seq(1,654,2)
+
+c_samples <-sapply(x, function(x){
+  model <- ksvm(as.matrix(data[,1:10]),
+                as.factor(data[,11]),
+                type="C-svc",
+                kernel= "rbfdot",
+                C=x,
+                scaled=TRUE)
+
+  a <- colSums(model@xmatrix[[1]] * model@coef[[1]])
+  a0 <- model@b
+  pred <- predict(model,data[,1:10])
+  sum(pred == data[,11]) / nrow(data)  
+
+})
+
+combined <- do.call(rbind, Map(data.frame, A=x, B=c_samples))
+combined
+
+ggplot(data=combined,aes(A,B))+geom_point()
+
+
+# Problem 2
+###################################################################################
+
+
+
+
+
+
+
+
+# Problem 3
+###################################################################################
+
+
+
+
+
