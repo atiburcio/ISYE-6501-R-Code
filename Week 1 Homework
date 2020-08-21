@@ -4,14 +4,17 @@
 # Question 2.2
 
 # Problem 1
-###################################################################################
+############################################################################################################################################################################
+
+## Solution 1 (training and testing on same data)
+###################################################
 install.packages("kernlab")
 library(kernlab)
 library(ggplot2)
 
 data <- read.table("credit_card_data.txt")
 
-x<- seq(1,654,2)
+x<- seq(1,1000,2)
 
 c_samples <-sapply(x, function(x){
   model <- ksvm(as.matrix(data[,1:10]),
@@ -20,12 +23,12 @@ c_samples <-sapply(x, function(x){
                 kernel= "rbfdot",
                 C=x,
                 scaled=TRUE)
-
-  a <- colSums(model@xmatrix[[1]] * model@coef[[1]])
-  a0 <- model@b
-  pred <- predict(model,data[,1:10])
-  sum(pred == data[,11]) / nrow(data)  
-
+  
+  # a <- colSums(model@xmatrix[[1]] * model@coef[[1]])
+  # a0 <- model@b
+  credit.approval <- predict(model,data[,1:10])
+  sum(credit.approval == data[,11]) / nrow(data)  
+  
 })
 
 combined <- do.call(rbind, Map(data.frame, A=x, B=c_samples))
@@ -34,8 +37,62 @@ combined
 ggplot(data=combined,aes(A,B))+geom_point()
 
 
+combined[which.max(combined$B),]
+
+## Solution 2 (splitting in to 70/30 train/test)
+###################################################
+
+install.packages("kernlab")
+library(kernlab)
+library(ggplot2)
+
+# import data
+data <- read.table("credit_card_data.txt")
+
+# what is the size of the data? number of rows
+m <- dim(data)[1]
+
+#Grab 30% of the data for training (Validation)
+val <- sample(1:m, size = round(m/3), replace = FALSE, 
+              prob = rep(1/m, m)) 
+
+#assigned training set
+trainData.learn <- data[-val,]
+
+#testing data set
+testData.valid <- data[val,]
+
+x<- seq(1,1000,2)
+
+c_samples <-sapply(x, function(x){
+  model <- ksvm(as.matrix(trainData.learn[,1:10]),
+                as.factor(trainData.learn[,11]),
+                type="C-svc",
+                kernel= "rbfdot",
+                C=x,
+                scaled=TRUE)
+  
+  # a <- colSums(model@xmatrix[[1]] * model@coef[[1]])
+  # a0 <- model@b
+  credit.approval <- predict(model,testData.valid[,1:10])
+  sum(credit.approval == testData.valid[,11]) / nrow(testData.valid)  
+  
+})
+
+combined <- do.call(rbind, Map(data.frame, A=x, B=c_samples))
+combined
+
+ggplot(data=combined,aes(A,B))+geom_point()
+
+
+combined[which.max(combined$B),]
+
+
+
+
+
 # Problem 2
-###################################################################################
+#######################################################################################################################################################################
 
 
 
@@ -45,7 +102,7 @@ ggplot(data=combined,aes(A,B))+geom_point()
 
 
 # Problem 3
-###################################################################################
+########################################################################################################################################################################
 
 
 
