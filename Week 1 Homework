@@ -104,6 +104,27 @@ combined[which.max(combined$B),]
 # Problem 3
 ########################################################################################################################################################################
 
+install.packages("kknn")
+library(kknn)
+library(ggplot2)
+data <- read.table("credit_card_data.txt")
+
+
+for (i in 1:nrow(data)) {
+  train<-data[-i,1:11]
+  test<-data[i,1:11]
+  predictions <- vector(mode = "list")
+  for (i in 1:nrow(data)) {
+    kknn.model <- kknn(V11~., 
+                       train, 
+                       test, 
+                       k = 1,
+                       kernel = "triangular",
+                       scale = TRUE)
+    preds <- fitted(kknn.model)
+    predictions <- append(predictions, preds)
+  }
+}
 
 
 
