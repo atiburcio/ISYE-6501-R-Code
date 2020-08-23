@@ -107,25 +107,35 @@ combined[which.max(combined$B),]
 install.packages("kknn")
 library(kknn)
 library(ggplot2)
+
+## Import the data
 data <- read.table("credit_card_data.txt")
 
+## Create empty vector to store each prediction
+predictions <- vector(mode = "list")
 
+## Create for loop that loops through row i and makes a prediction
 for (i in 1:nrow(data)) {
   train<-data[-i,1:11]
   test<-data[i,1:11]
-  predictions <- vector(mode = "list")
-  for (i in 1:nrow(data)) {
-    kknn.model <- kknn(V11~., 
-                       train, 
-                       test, 
-                       k = 1,
-                       kernel = "triangular",
-                       scale = TRUE)
-    preds <- fitted(kknn.model)
-    predictions <- append(predictions, preds)
+  kknn.model <- kknn(V11~., 
+                     train, 
+                     test, 
+                     k = 1,
+                     kernel = "triangular",
+                     scale = TRUE)
+  preds <- fitted(kknn.model)
+  predictions <- append(predictions, preds)
   }
-}
 
+## How many times was the prediction correct
+sum(predictions == data[,11]) / nrow(data)
+
+## Store predictions as a data.frame
+predictions.dataframe <- as.data.frame(predictions)
+
+## Confusion matrix
+table(data[,11], predictions.dataframe)
 
 
 
