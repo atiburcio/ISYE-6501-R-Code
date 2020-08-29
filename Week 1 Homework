@@ -103,39 +103,46 @@ combined[which.max(combined$B),]
 
 # Problem 3
 ########################################################################################################################################################################
-
 install.packages("kknn")
 library(kknn)
 library(ggplot2)
-
-## Import the data
 data <- read.table("credit_card_data.txt")
 
-## Create empty vector to store each prediction
-predictions <- vector(mode = "list")
+head(data)
 
-## Create for loop that loops through row i and makes a prediction
+
+check_accuracy = function(X){
+# predictions <- vector(mode = "list")
+predicted <- rep(0,(nrow(data))) # predictions: start with a vector of all zeros
+
 for (i in 1:nrow(data)) {
-  train<-data[-i,1:11]
-  test<-data[i,1:11]
   kknn.model <- kknn(V11~., 
-                     train, 
-                     test, 
-                     k = 1,
-                     kernel = "triangular",
+                     data[-i,1:11], 
+                     data[i,1:11], 
+                     k = X,
                      scale = TRUE)
   preds <- fitted(kknn.model)
-  predictions <- append(predictions, preds)
-  }
+  # predicted[i] <- as.integer(fitted(model)+0.5) # round off to 0 or 1
+  # predictions <- append(predictions, preds)
+  predicted[i] <- as.integer(fitted(kknn.model)+0.5) # round off to 0 or 1
+}
 
-## How many times was the prediction correct
-sum(predictions == data[,11]) / nrow(data)
+accuracy = sum(predicted == data[,11]) / nrow(data)
+return(accuracy)
+}
 
-## Store predictions as a data.frame
-predictions.dataframe <- as.data.frame(predictions)
+acc <- rep(0,25) # set up a vector of 20 zeros to start
+for (X in 1:20){
+  acc[X] = check_accuracy(X) # test knn with X neighbors
+}
 
-## Confusion matrix
-table(data[,11], predictions.dataframe)
+x <-  seq(1,25)
+
+
+combined <- do.call(rbind, Map(data.frame, A=x, B=acc))
+combined
+
+ggplot(data=combined,aes(A,B))+geom_point()
 
 
 
