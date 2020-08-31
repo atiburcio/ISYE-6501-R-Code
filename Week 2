@@ -179,3 +179,8 @@ pred_highest_C <- predict(model_highest_C,test[,1:10])
 
 ## What was the final accuracy of our model? In this case 90.8% 
 sum(pred_highest_C == test$V11) / nrow(test)
+
+
+####################################################################################
+Problem 4.1
+In marketing analytics, part of my job as an analyst is to improve user engagement with advertisements.  Using a clustering analysis to group users in to audience segments is a very hot “buzzword.”  Business leaders are always trying to break our audience in to meaningful segments.  Using a clustering analysis could do this!  Several predictors that might help could be: time spent,  device type, day of week, time of day, refer type (where did the user come from prior to hitting out site?).  
