@@ -196,6 +196,17 @@ sum(pred_highest_C == test$V11) / nrow(test)
 
 ##################################################################################
 
+## Problem 4.1 
+
+# In marketing analytics, part of my job as an analyst is to improve user engagement with advertisements.  
+# Using a clustering analysis to group users in to audience segments is a very hot “buzzword.”  
+# Business leaders are always trying to break our audience in to meaningful segments.  
+# Using a clustering analysis could do this!  
+# Several predictors that might help could be: time spent,  device type, geo location, time of day, refer type (social, SEO, etc.).  
+# After grouping users in to various clusters we might be able to better recommend site content and advertisements.   
+
+
+####################################################################################
 
 ##  Problem 4.2
 
@@ -211,8 +222,13 @@ df <- scale(iris[,1:4]) # Scaling the data
 # View the firt 3 rows of the data
 head(df, n = 3)
 
+# Calculate the Euclidean distance between rows of a data matrix
 distance <- get_dist(df)
-fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+
+# Plot the distance matrix to visualize (dis)similarity of the rows of the iris data 
+fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07")) + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
 
 set.seed(1)
 k2 <- kmeans(df, centers = 2, nstart = 25)
