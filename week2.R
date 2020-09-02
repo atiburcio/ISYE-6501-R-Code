@@ -217,7 +217,13 @@ library(dplyr)
 
 data("iris")      # Loading the data set
 
-df <- scale(iris[,1:4]) # Scaling the data
+# scale the data (choosing pedal width and length--as these columns provide the most signal)
+# Please see the attached excel spreadsheet for justification for this
+df <- scale(iris[,1:4]) 
+
+df <- as_tibble(df)
+
+df <- df %>% select(3,4)
 
 # View the firt 3 rows of the data
 head(df, n = 3)
@@ -229,7 +235,7 @@ distance <- get_dist(df)
 fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07")) + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
-
+# Use kmeans on our dataframe, define number of clusters
 set.seed(1)
 k2 <- kmeans(df, centers = 2, nstart = 25)
 k3 <- kmeans(df, centers = 3, nstart = 25)
@@ -271,7 +277,7 @@ fviz_nbclust(df, kmeans, method = "wss")
 
 ## Create a dataframe of our k3 model that uses 3 clusters since
 #  this model creates the best clustering as determined by looking at the 
-#  elbow method graph
+#  elbow method graph.  We see that 3 clusters is the best choice.
 prediction_clusters <- as.data.frame(k3[["cluster"]])
 
 ## Rename the column as Cluster.prediction
@@ -285,30 +291,23 @@ colnames(prediction_clusters)[1] <- "Cluster.prediction"
 
 prediction_clusters <- prediction_clusters %>% 
   mutate(species = case_when(
-    .$Cluster.prediction == 3  ~ "setosa",
-    .$Cluster.prediction == 2  ~ "versicolor",
-    .$Cluster.prediction == 1  ~ "virginica",
+    .$Cluster.prediction == 2  ~ "setosa",
+    .$Cluster.prediction == 1  ~ "versicolor",
+    .$Cluster.prediction == 3  ~ "virginica",
     TRUE ~ "other"
   )
   )
 
 ##  Take a look at the data
-head(prediction_clusters)
+prediction_clusters
 
 ##  how often is the cluster correct in relation to the actual data set? looks
-## like 83.3% of the time
+## like 96% of the time
 sum(prediction_clusters[,2] == iris[,5]) / nrow(iris)
 p2
 
-##  Since there are only 4 columns here I played around with removing columns
-#  from the data.  As we use less columns the accuracy of the clusters diminishes
-#  We can see this by comparing the cluster the model gives us to the actual iris data.  
-
-
-
-
-
-
-
-
-
+##  Since there are only 4 columns here I played around with how each column
+##  of data varies.  Petal length and width end up providing the most variance
+##  across species.  This allows the model to distinguish more clearly and 
+##  group the data in to corresponding clusters 1,2,3.  Using just petal data 
+##  gives an improvement of over 13% from using all 4 of the columns (pedal and sepal)
