@@ -1,0 +1,84 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+## Problem 7.1
+
+Describe a situation or problem from your job, everyday life, current events, etc., for which exponential smoothing would be appropriate. What data would you need? Would you expect the value of alpha (the first smoothing parameter) to be closer to 0 or 1, and why?
+
+Often as a business intelligence analyst with a large internet/media company I am asked to analyze and report on the time of day/day of week users browse our site(s) content.  Exponential smoothing could provide a good deal of insight for my stakeholders in editorial and marketing.  Better understanding what days of the week or time of the day we have traffic has implications for the advertisements we serve or even the time at which we publish content.  If we could understand what time of the day throughout the year we have the most/least traffic we could make business decisions accordingly.  For the purposes of this assignment I think I would look at time of day.  For the most part, I know that site traffic spikes between 8-9am , 5-6pm and then again between 9-10pm.  Pre-work?  Post-work?  Pre-bedtime?  This goes for Monday-Friday.  The weekend is much more difficult to predict.  There are seasonal and unpredictable variables at play as well-Holidays, Back to School, Prime Day, Elections.  Since a little more than half of our days are relatively predictable, I think I’d choose a value of alpha = 0.6.  Most of the time Monday-Friday will have consistent traffic patterns.  Monday-Friday account for 71% of our days.  I’m discounting this slightly for the sake of adding in a touch more adjustment for “randomness.” 
+
+## Problem 7.2
+
+Using the 20 years of daily high temperature data for Atlanta (July through October) from Question 6.2 (file temps.txt), build and use an exponential smoothing model to help make a judgment of whether the unofficial end of summer has gotten later over the 20 years.
+
+```{r}
+## Import the data
+data <- read.table("temps.txt", stringsAsFactors = FALSE, header = TRUE)
+head(data)
+
+## Store as vector and then as time series for the holt winters model
+
+## First unlis the data and store as vector
+temps_vc <- as.vector(unlist(data[,2:21]))
+head(temps_vc)
+
+## Let's take a look at how the data plots
+plot(temps_vc)
+
+## Next let's store the data as a time series object so that Holt-Winters() can read the data
+temps_ts <- ts(temps_vc, start=1996, frequency = 123)
+
+## Let's take a look at the manipulated data,  it is now arranged in one unnested list of values 
+head(temps_ts)
+
+## Plot the time series data--notice that our graph is much easier to interpret. The seasonality of this data starts to take shape as we see the peaks and valleys consistently across the 20 year span. Each peak in the data represents the temperature at the height of summer.  As our line drops we begin to mark the end of summer and a transition towards fall.
+plot(temps_ts)
+
+## HW with multiplicative parameter
+temps_hw <- HoltWinters(temps_ts, alpha = NULL, beta = NULL, gamma = NULL, seasonal = "multiplicative")
+
+## HW with additive parameter
+temps_hwa <- HoltWinters(temps_ts, alpha = NULL, beta = NULL, gamma = NULL, seasonal = "additive")
+
+## HW with additive parameter and gamma set to false so that we don't have to wait a year to see fitted data 
+temps_hwb <- HoltWinters(temps_ts, alpha = NULL, beta = NULL, gamma = FALSE, seasonal = "additive")
+
+## HW chart 1
+## Plot with multiplicative parameter
+plot(temps_hw)
+
+## HW chart 2
+## Plot with additive parameter
+plot(temps_hwa)
+
+## HW chart 3
+## Plot with additive parameter and gamma removed
+plot(temps_hwb)
+```
+
+Additive with gamma removed (HW chart 3 above) gives us closest fitted model to our actual data.  For this reason I am choosing this model to move foward with.
+
+
+```{r}
+## transform smoothed data (xhat column) in to matrix
+temps_hw_smoothed <- matrix(temps_hwb$fitted[,1], nrow = 123)
+
+## store as a dataframe
+temps_hw_smoothed <- data.frame(temps_hw_smoothed)
+
+## take a look at the tansformed data
+head(temps_hw_smoothed)
+
+## write xhat to csv with the code commented out below. 
+# write.table(temps_hw_smoothed, file = "xhat.csv", sep = ",", col.names = NA,
+            # qmethod = "double")
+```
+
+Now we will use this smoothed temperature data (Image 1) that leverages holt-winters to analyze our change of season with a change detection method (CUSUM).  Attached please find several PDF images from excel that detail the outcome of my analysis on this data with CUSUM. One of my first observations when looking at this "smoothed" out data is that the holt winters model drastically missed predictions against actual in the last day of the data set (10/31).  This has little effect on when CUSUM detected the change in season since the change was detected far before 10/31.  However, it's worth noting!  After iterating through various values of C and T I found that a value of C=5 and T =35 best matched the results I found from last week (that summer ends around September 25th each year).  This analysis, on average, detected that summer ends on 9/21 every year (Image 2).  
+
+Summer is not ending later every year.  Despite there being a couple of hotter than average summers in 2010-2012 (Image 3), based on the data, we are in fact seeing the majority of change detected right around that 9/21 date.  It's worth noting that there are 2 years (2011 and 2012) where we see CUSUM detect a change in season at a record early date for the 20 year range (9/6 and 8/24).  Because there are only two data points I don't think there is enough information to say definitively that summer is ending earlier.  In fact, if we remove these two data points from the analysis we can see that there are two years where we don't detect a change in season until as late as October.  
+
